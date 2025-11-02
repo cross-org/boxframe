@@ -1,6 +1,6 @@
 {
     "name": "@cross/boxframe",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "exports": "./mod.ts",
     "tasks": {
         "check": "deno check mod.ts",
