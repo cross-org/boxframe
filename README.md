@@ -1,9 +1,5 @@
 # BoxFrame
 
-> **⚠️ Notice: This repository has been moved to [cross-org/boxframe](https://github.com/cross-org/boxframe).**
-> 
-> **Development continues! The project is not being stopped—it has simply moved to a new home under the [cross-org](https://github.com/cross-org) organization. Please use [@cross/boxframe](https://jsr.io/@cross/boxframe) instead. This repository is being archived.**
-
 **DataFrames for JavaScript** - A high-performance data analysis library with WebAssembly acceleration. Inspired by Pandas.
 
 **Cross-Platform**: Works in Deno, Node.js, Bun, and browsers
