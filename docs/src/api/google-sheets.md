@@ -25,7 +25,7 @@ Provides methods to read data from public Google Sheets.
 ## Example
 
 ```typescript
-import { GoogleSheets } from "@pinta365/boxframe";
+import { GoogleSheets } from "@cross/boxframe";
 
 // From spreadsheet ID
 const df = await GoogleSheets.readSheet("1ABC123...");

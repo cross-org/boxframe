@@ -39,7 +39,7 @@ type DType = "int32" | "float64" | "string" | "bool" | "datetime";
 ### Basic Usage
 
 ```typescript
-import { parseCsv, parseCsvFromFile } from "@pinta365/boxframe";
+import { parseCsv, parseCsvFromFile } from "@cross/boxframe";
 
 // Parse CSV string with automatic type inference
 const df1 = parseCsv("name,age,salary,hire_date\nAlice,25,50000.50,2023-01-15\nBob,30,75000,2022-06-10");
@@ -129,7 +129,7 @@ const df9 = parseCsv(csvContent, {
 ### Streaming Large CSVs
 
 ```typescript
-import { parseCsvBatchedStream, parseCsvStream } from "@pinta365/boxframe";
+import { parseCsvBatchedStream, parseCsvStream } from "@cross/boxframe";
 
 // 1) Batched streaming with callbacks
 await parseCsvBatchedStream("/path/to/large.csv", {
@@ -159,7 +159,7 @@ console.log("total rows:", df.shape[0]);
 For very large CSV files, you can enable worker-based parallel parsing to leverage multiple CPU cores:
 
 ```typescript
-import { parseCsvBatchedStream, parseCsvStream, analyzeCsv } from "@pinta365/boxframe";
+import { parseCsvBatchedStream, parseCsvStream, analyzeCsv } from "@cross/boxframe";
 
 // Enable workers for parallel processing (recommended for files > 100MB)
 await parseCsvBatchedStream("/path/to/very-large.csv", {
@@ -214,7 +214,7 @@ await parseCsvBatchedStream("/path/to/very-large.csv", {
 ### Quick File Analysis (Sampling)
 
 ```typescript
-import { analyzeCsv } from "@pinta365/boxframe";
+import { analyzeCsv } from "@cross/boxframe";
 
 const analysis = await analyzeCsv("/path/to/large.csv", { sampleLines: 1000 });
 console.log(analysis.columns);      // inferred column names

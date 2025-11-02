@@ -14,29 +14,29 @@ BoxFrame is available on JSR (JavaScript Registry) and can be installed with you
 
 #### Deno
 ```bash
-deno add jsr:@pinta365/boxframe
+deno add jsr:@cross/boxframe
 ```
 
 #### Node.js
 ```bash
-npx jsr add @pinta365/boxframe
+npx jsr add @cross/boxframe
 ```
 
 #### Bun
 ```bash
-bunx jsr add @pinta365/boxframe
+bunx jsr add @cross/boxframe
 ```
 
 #### Other Package Managers
 ```bash
 # pnpm
-pnpm i jsr:@pinta365/boxframe
+pnpm i jsr:@cross/boxframe
 
 # yarn
-yarn add jsr:@pinta365/boxframe
+yarn add jsr:@cross/boxframe
 
 # vlt
-vlt install jsr:@pinta365/boxframe
+vlt install jsr:@cross/boxframe
 ```
 
 #### Browser (ESM)
@@ -44,7 +44,7 @@ For browser usage, you can import BoxFrame directly from esm.sh:
 
 ```html
 <script type="module">
-import { DataFrame } from "https://esm.sh/jsr/@pinta365/boxframe@0.0.1";
+import { DataFrame } from "https://esm.sh/jsr/@cross/boxframe@0.0.1";
 
 // Use BoxFrame in your browser application
 const df = new DataFrame({
@@ -63,7 +63,7 @@ console.log(df.toString());
 Let's create a simple DataFrame to get started:
 
 ```typescript
-import { DataFrame } from "@pinta365/boxframe";
+import { DataFrame } from "@cross/boxframe";
 
 // Create a DataFrame from an object
 const df = new DataFrame({
@@ -196,7 +196,7 @@ const names = df.get("name");
 A Series is a one-dimensional array with labels:
 
 ```typescript
-import { Series } from "@pinta365/boxframe";
+import { Series } from "@cross/boxframe";
 
 // Create a Series
 const ages = new Series([25, 30, 35, 28], { name: "age" });
@@ -278,7 +278,7 @@ const df7 = await BoxFrame.readGoogleSheetFromUrl(
 When working with very large CSV files, consider using the streaming APIs to reduce memory usage and process data incrementally:
 
 ```typescript
-import { parseCsvBatchedStream } from "@pinta365/boxframe";
+import { parseCsvBatchedStream } from "@cross/boxframe";
 
 await parseCsvBatchedStream("/path/to/large.csv", {
     hasHeader: true,

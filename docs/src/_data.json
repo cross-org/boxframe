@@ -11,12 +11,12 @@
         {
             "icon": "fab fa-github",
             "title": "GitHub Repository",
-            "url": "https://github.com/pinta365/boxframe"
+            "url": "https://github.com/cross-org/boxframe"
         },
         {
             "icon": "fas fa-box",
             "title": "JSR Package",
-            "url": "https://jsr.io/@pinta365/boxframe"
+            "url": "https://jsr.io/@cross/boxframe"
         }
     ],
     "nav_links": [
@@ -26,7 +26,7 @@
         },
         {
             "title": "GitHub",
-            "url": "https://github.com/pinta365/boxframe"
+            "url": "https://github.com/cross-org/boxframe"
         }
     ]
 }

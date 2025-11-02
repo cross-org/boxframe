@@ -13,7 +13,7 @@ This page contains practical examples using BoxFrame.
 ### Sales Data Analysis
 
 ```typescript
-import { DataFrame } from "@pinta365/boxframe";
+import { DataFrame } from "@cross/boxframe";
 
 // Sample sales data
 const salesData = new DataFrame({
@@ -42,7 +42,7 @@ console.log(productSummary);
 ### Employee Data Processing
 
 ```typescript
-import { DataFrame } from "@pinta365/boxframe";
+import { DataFrame } from "@cross/boxframe";
 
 // Employee dataset
 const employees = new DataFrame({
@@ -75,7 +75,7 @@ const salaryAnalysis = employees.assign({
 ### Cleaning Messy Data
 
 ```typescript
-import { DataFrame } from "@pinta365/boxframe";
+import { DataFrame } from "@cross/boxframe";
 
 // Messy dataset with missing values and inconsistencies
 const messyData = new DataFrame({
@@ -136,7 +136,7 @@ console.log(normalized.toString());
 ### Time Series Analysis
 
 ```typescript
-import { DataFrame } from "@pinta365/boxframe";
+import { DataFrame } from "@cross/boxframe";
 
 // Stock price data
 const stockData = new DataFrame({
@@ -174,7 +174,7 @@ const withMA = withReturns.assign({
 Customer segmentation helps identify distinct groups based on demographics and behavior patterns. This example creates age and income groups, then analyzes spending patterns across segments.
 
 ```typescript
-import { DataFrame } from "@pinta365/boxframe";
+import { DataFrame } from "@cross/boxframe";
 
 // Customer data with diverse age/income combinations
 const customers = new DataFrame({
@@ -229,7 +229,7 @@ Senior|Low    2000          4              8000
 ### Large Dataset Processing
 
 ```typescript
-import { DataFrame } from "@pinta365/boxframe";
+import { DataFrame } from "@cross/boxframe";
 
 // For large datasets, use appropriate operations
 const largeDataset = new DataFrame({
@@ -253,7 +253,7 @@ console.log("Processed", results.shape[0], "groups");
 ### Streaming Large CSV Files
 
 ```typescript
-import { parseCsvBatchedStream } from "@pinta365/boxframe";
+import { parseCsvBatchedStream } from "@cross/boxframe";
 
 // Stream a large CSV in batches and write to a database incrementally
 await parseCsvBatchedStream("/data/huge.csv", {
@@ -288,7 +288,7 @@ await parseCsvBatchedStream("/data/very-large.csv", {
 ### Working with APIs
 
 ```typescript
-import { BoxFrame } from "@pinta365/boxframe";
+import { BoxFrame } from "@cross/boxframe";
 
 // Fetch data from API and process
 async function processAPIData() {

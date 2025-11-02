@@ -14,7 +14,7 @@ from Rust for performance, it provides an intuitive API for data manipulation, a
 ## Quick Start
 
 ```typescript
-import { DataFrame } from "@pinta365/boxframe";
+import { DataFrame } from "@cross/boxframe";
 
 // Sales data analysis
 const sales = new DataFrame({
@@ -49,29 +49,29 @@ BoxFrame is available on JSR (JavaScript Registry) and can be installed with you
 
 #### Deno
 ```bash
-deno add jsr:@pinta365/boxframe
+deno add jsr:@cross/boxframe
 ```
 
 #### Node.js
 ```bash
-npx jsr add @pinta365/boxframe
+npx jsr add @cross/boxframe
 ```
 
 #### Bun
 ```bash
-bunx jsr add @pinta365/boxframe
+bunx jsr add @cross/boxframe
 ```
 
 #### Other Package Managers
 ```bash
 # pnpm
-pnpm i jsr:@pinta365/boxframe
+pnpm i jsr:@cross/boxframe
 
 # yarn
-yarn add jsr:@pinta365/boxframe
+yarn add jsr:@cross/boxframe
 
 # vlt
-vlt install jsr:@pinta365/boxframe
+vlt install jsr:@cross/boxframe
 ```
 
 #### Browser (ESM)
@@ -79,7 +79,7 @@ For browser usage, you can import BoxFrame directly from esm.sh:
 
 ```html
 <script type="module">
-import { DataFrame } from "https://esm.sh/jsr/@pinta365/boxframe@0.0.1";
+import { DataFrame } from "https://esm.sh/jsr/@cross/boxframe@0.0.1";
 
 // Use BoxFrame in your browser application
 const df = new DataFrame({

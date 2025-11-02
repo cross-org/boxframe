@@ -22,7 +22,7 @@ Helper functions for data type inference, conversion, and validation.
 ## Examples
 
 ```typescript
-import { inferDType, isDType, isWasmEngineEnabled } from "@pinta365/boxframe";
+import { inferDType, isDType, isWasmEngineEnabled } from "@cross/boxframe";
 
 // Type inference
 const dtype = inferDType(42);        // "int32"
