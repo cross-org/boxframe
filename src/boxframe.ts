@@ -4,7 +4,7 @@
 
 import { Series } from "./series.ts";
 import { DataFrame } from "./dataframe.ts";
-import type { ColumnData, CsvOptions, DataFrameInput, DataValue, DType, Index, JsonOptions, RowData } from "./types.ts";
+import type { ColumnData, CsvOptions, DataFrameInput, DataValue, DType, Index, JsonOptions, MergeOptions, RowData } from "./types.ts";
 import { isWasmEngineEnabled } from "./types.ts";
 import { type CsvParseOptions, parseCsv, parseCsvFromFile } from "./csv_parser.ts";
 import { readFile } from "@cross/fs/io";
@@ -242,6 +242,283 @@ export class BoxFrame {
                 columns: resultColumns,
             });
         }
+    }
+
+    /**
+     * Merge two DataFrames using SQL-style joins
+     *
+     * @param left - Left DataFrame
+     * @param right - Right DataFrame
+     * @param options - Merge options
+     * @returns Merged DataFrame
+     *
+     * @example
+     * ```typescript
+     * const df1 = new DataFrame({ id: [1, 2, 3], name: ["Alice", "Bob", "Charlie"] });
+     * const df2 = new DataFrame({ id: [2, 3, 4], age: [25, 30, 35] });
+     *
+     * // Inner join on 'id'
+     * const inner = BoxFrame.merge(df1, df2, { on: "id", how: "inner" });
+     *
+     * // Left join with different column names
+     * const left = BoxFrame.merge(df1, df2, {
+     *   leftOn: "id",
+     *   rightOn: "id",
+     *   how: "left"
+     * });
+     * ```
+     */
+    static merge(left: DataFrame, right: DataFrame, options: MergeOptions = {}): DataFrame {
+        const {
+            how = "inner",
+            on,
+            leftOn,
+            rightOn,
+            suffixes = ["_x", "_y"],
+        } = options;
+
+        let leftKeys: string[];
+        let rightKeys: string[];
+
+        if (on) {
+            const keys = Array.isArray(on) ? on : [on];
+            leftKeys = keys;
+            rightKeys = keys;
+
+            for (const key of keys) {
+                if (!left.columns.includes(key)) {
+                    throw new Error(`Column '${key}' not found in left DataFrame`);
+                }
+                if (!right.columns.includes(key)) {
+                    throw new Error(`Column '${key}' not found in right DataFrame`);
+                }
+            }
+        } else if (leftOn && rightOn) {
+            leftKeys = Array.isArray(leftOn) ? leftOn : [leftOn];
+            rightKeys = Array.isArray(rightOn) ? rightOn : [rightOn];
+
+            if (leftKeys.length !== rightKeys.length) {
+                throw new Error("leftOn and rightOn must have the same number of keys");
+            }
+
+            for (const key of leftKeys) {
+                if (!left.columns.includes(key)) {
+                    throw new Error(`Column '${key}' not found in left DataFrame`);
+                }
+            }
+            for (const key of rightKeys) {
+                if (!right.columns.includes(key)) {
+                    throw new Error(`Column '${key}' not found in right DataFrame`);
+                }
+            }
+        } else {
+            throw new Error("Either 'on' or both 'leftOn' and 'rightOn' must be specified");
+        }
+
+        const leftKeyMap = new Map<string, number[]>();
+        for (let i = 0; i < left.length; i++) {
+            const keyValues = leftKeys.map((key) => {
+                const series = left.data.get(key);
+                return series ? series.values[i] : null;
+            });
+            const key = this._createKey(keyValues);
+            if (!leftKeyMap.has(key)) {
+                leftKeyMap.set(key, []);
+            }
+            leftKeyMap.get(key)!.push(i);
+        }
+
+        const rightKeyMap = new Map<string, number[]>();
+        for (let i = 0; i < right.length; i++) {
+            const keyValues = rightKeys.map((key) => {
+                const series = right.data.get(key);
+                return series ? series.values[i] : null;
+            });
+            const key = this._createKey(keyValues);
+            if (!rightKeyMap.has(key)) {
+                rightKeyMap.set(key, []);
+            }
+            rightKeyMap.get(key)!.push(i);
+        }
+
+        const allKeys = new Set<string>();
+        if (how === "inner" || how === "left" || how === "outer") {
+            leftKeyMap.forEach((_, key) => allKeys.add(key));
+        }
+        if (how === "inner" || how === "right" || how === "outer") {
+            rightKeyMap.forEach((_, key) => allKeys.add(key));
+        }
+
+        const resultData: Record<string, ColumnData> = {};
+        const resultIndex: Index[] = [];
+        const resultColumns: string[] = [];
+
+        for (let i = 0; i < leftKeys.length; i++) {
+            const leftKey = leftKeys[i];
+            resultColumns.push(leftKey);
+            resultData[leftKey] = [];
+        }
+
+        for (const col of left.columns) {
+            if (!leftKeys.includes(col)) {
+                resultColumns.push(col);
+                resultData[col] = [];
+            }
+        }
+
+        for (const col of right.columns) {
+            if (!rightKeys.includes(col)) {
+                let finalColName = col;
+                if (left.columns.includes(col) && !leftKeys.includes(col)) {
+                    finalColName = col + suffixes[1];
+                }
+                resultColumns.push(finalColName);
+                resultData[finalColName] = [];
+            }
+        }
+
+        for (const key of allKeys) {
+            const leftIndices = leftKeyMap.get(key) || [];
+            const rightIndices = rightKeyMap.get(key) || [];
+
+            let leftRows: number[];
+            let rightRows: number[];
+
+            if (how === "inner") {
+                if (leftIndices.length > 0 && rightIndices.length > 0) {
+                    leftRows = leftIndices;
+                    rightRows = rightIndices;
+                } else {
+                    continue;
+                }
+            } else if (how === "left") {
+                leftRows = leftIndices;
+                rightRows = rightIndices.length > 0 ? rightIndices : [];
+            } else if (how === "right") {
+                leftRows = leftIndices.length > 0 ? leftIndices : [];
+                rightRows = rightIndices;
+            } else {
+                leftRows = leftIndices;
+                rightRows = rightIndices;
+            }
+
+            if (leftRows.length === 0 && rightRows.length > 0) {
+                for (const rightIdx of rightRows) {
+                    for (let i = 0; i < rightKeys.length; i++) {
+                        const rightKey = rightKeys[i];
+                        const series = right.data.get(rightKey);
+                        const value = series ? series.values[rightIdx] : null;
+                        resultData[leftKeys[i]].push(value);
+                    }
+
+                    for (const col of left.columns) {
+                        if (!leftKeys.includes(col)) {
+                            resultData[col].push(null);
+                        }
+                    }
+
+                    for (const col of right.columns) {
+                        if (!rightKeys.includes(col)) {
+                            let finalColName = col;
+                            if (left.columns.includes(col) && !leftKeys.includes(col)) {
+                                finalColName = col + suffixes[1];
+                            }
+                            const series = right.data.get(col);
+                            const value = series ? series.values[rightIdx] : null;
+                            resultData[finalColName].push(value);
+                        }
+                    }
+
+                    resultIndex.push(right.index[rightIdx]);
+                }
+            } else if (rightRows.length === 0 && leftRows.length > 0) {
+                for (const leftIdx of leftRows) {
+                    for (let i = 0; i < leftKeys.length; i++) {
+                        const leftKey = leftKeys[i];
+                        const series = left.data.get(leftKey);
+                        const value = series ? series.values[leftIdx] : null;
+                        resultData[leftKey].push(value);
+                    }
+
+                    for (const col of left.columns) {
+                        if (!leftKeys.includes(col)) {
+                            const series = left.data.get(col);
+                            const value = series ? series.values[leftIdx] : null;
+                            resultData[col].push(value);
+                        }
+                    }
+
+                    for (const col of right.columns) {
+                        if (!rightKeys.includes(col)) {
+                            let finalColName = col;
+                            if (left.columns.includes(col) && !leftKeys.includes(col)) {
+                                finalColName = col + suffixes[1];
+                            }
+                            resultData[finalColName].push(null);
+                        }
+                    }
+
+                    resultIndex.push(left.index[leftIdx]);
+                }
+            } else {
+                for (const leftIdx of leftRows) {
+                    for (const rightIdx of rightRows) {
+                        for (let i = 0; i < leftKeys.length; i++) {
+                            const leftKey = leftKeys[i];
+                            const series = left.data.get(leftKey);
+                            const value = series ? series.values[leftIdx] : null;
+                            resultData[leftKey].push(value);
+                        }
+
+                        for (const col of left.columns) {
+                            if (!leftKeys.includes(col)) {
+                                const series = left.data.get(col);
+                                const value = series ? series.values[leftIdx] : null;
+                                resultData[col].push(value);
+                            }
+                        }
+
+                        for (const col of right.columns) {
+                            if (!rightKeys.includes(col)) {
+                                let finalColName = col;
+                                if (left.columns.includes(col) && !leftKeys.includes(col)) {
+                                    finalColName = col + suffixes[1];
+                                }
+                                const series = right.data.get(col);
+                                const value = series ? series.values[rightIdx] : null;
+                                resultData[finalColName].push(value);
+                            }
+                        }
+
+                        const leftIndexValue = left.index[leftIdx];
+                        const rightIndexValue = right.index[rightIdx];
+                        const combinedIndex = `${leftIndexValue}_${rightIndexValue}`;
+                        resultIndex.push(combinedIndex);
+                    }
+                }
+            }
+        }
+
+        return new DataFrame(resultData, {
+            index: resultIndex,
+            columns: resultColumns,
+        });
+    }
+
+    /**
+     * Create a string key from key values for efficient matching
+     * @private
+     */
+    private static _createKey(keyValues: (DataValue | null)[]): string {
+        return keyValues.map((v) => {
+            if (v === null || v === undefined) {
+                return "__NULL__";
+            }
+            if (v instanceof Date) {
+                return v.getTime().toString();
+            }
+            return String(v);
+        }).join("|");
     }
 
     /**

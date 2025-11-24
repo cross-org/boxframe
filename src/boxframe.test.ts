@@ -2,7 +2,7 @@
  * Tests for BoxFrame static methods
  */
 
-import { assertEquals, assertThrows } from "@std/assert";
+import { assert, assertEquals, assertThrows } from "@std/assert";
 import { BoxFrame } from "./boxframe.ts";
 
 // Test data generators
@@ -299,6 +299,7 @@ Deno.test("BoxFrame - concat with invalid axis", () => {
     const df = BoxFrame.DataFrame({ col1: [1, 2] });
 
     assertThrows(
+        // deno-lint-ignore no-explicit-any
         () => BoxFrame.concat([df], 2 as any),
         Error,
         "Axis must be 0 or 1",
@@ -332,7 +333,7 @@ Deno.test("BoxFrame - dateRange with invalid frequency", () => {
     const end = new Date("2023-01-05");
 
     assertThrows(
-        () => BoxFrame.dateRange({ start, end, freq: "X" as any }),
+        () => BoxFrame.dateRange({ start, end, freq: "X" }),
         Error,
         "Unsupported frequency",
     );
@@ -372,6 +373,222 @@ Deno.test("BoxFrame - Performance: toNumeric with large dataset", () => {
     assertEquals(result.length, size);
     assertEquals(result.dtype, "float64");
     console.log(`toNumeric performance: ${(end - start).toFixed(2)}ms for ${size} elements`);
+});
+
+Deno.test("BoxFrame - merge: inner join on single key", () => {
+    const df1 = BoxFrame.DataFrame({
+        id: [1, 2, 3],
+        name: ["Alice", "Bob", "Charlie"],
+    });
+
+    const df2 = BoxFrame.DataFrame({
+        id: [2, 3, 4],
+        age: [25, 30, 35],
+    });
+
+    const result = BoxFrame.merge(df1, df2, { on: "id", how: "inner" });
+
+    assertEquals(result.shape, [2, 3]);
+    assertEquals(result.columns, ["id", "name", "age"]);
+    assertEquals(result.get("id").values, [2, 3]);
+    assertEquals(result.get("name").values, ["Bob", "Charlie"]);
+    assertEquals(result.get("age").values, [25, 30]);
+});
+
+Deno.test("BoxFrame - merge: left join", () => {
+    const df1 = BoxFrame.DataFrame({
+        id: [1, 2, 3],
+        name: ["Alice", "Bob", "Charlie"],
+    });
+
+    const df2 = BoxFrame.DataFrame({
+        id: [2, 3, 4],
+        age: [25, 30, 35],
+    });
+
+    const result = BoxFrame.merge(df1, df2, { on: "id", how: "left" });
+
+    assertEquals(result.shape, [3, 3]);
+    assertEquals(result.columns, ["id", "name", "age"]);
+    assertEquals(result.get("id").values, [1, 2, 3]);
+    assertEquals(result.get("name").values, ["Alice", "Bob", "Charlie"]);
+    assertEquals(result.get("age").values, [null, 25, 30]);
+});
+
+Deno.test("BoxFrame - merge: right join", () => {
+    const df1 = BoxFrame.DataFrame({
+        id: [1, 2, 3],
+        name: ["Alice", "Bob", "Charlie"],
+    });
+
+    const df2 = BoxFrame.DataFrame({
+        id: [2, 3, 4],
+        age: [25, 30, 35],
+    });
+
+    const result = BoxFrame.merge(df1, df2, { on: "id", how: "right" });
+
+    assertEquals(result.shape, [3, 3]);
+    assertEquals(result.columns, ["id", "name", "age"]);
+    assertEquals(result.get("id").values, [2, 3, 4]);
+    assertEquals(result.get("name").values, ["Bob", "Charlie", null]);
+    assertEquals(result.get("age").values, [25, 30, 35]);
+});
+
+Deno.test("BoxFrame - merge: outer join", () => {
+    const df1 = BoxFrame.DataFrame({
+        id: [1, 2, 3],
+        name: ["Alice", "Bob", "Charlie"],
+    });
+
+    const df2 = BoxFrame.DataFrame({
+        id: [2, 3, 4],
+        age: [25, 30, 35],
+    });
+
+    const result = BoxFrame.merge(df1, df2, { on: "id", how: "outer" });
+
+    assertEquals(result.shape, [4, 3]);
+    assertEquals(result.columns, ["id", "name", "age"]);
+    const ids = result.get("id").values as number[];
+    assert(ids.includes(1));
+    assert(ids.includes(2));
+    assert(ids.includes(3));
+    assert(ids.includes(4));
+});
+
+Deno.test("BoxFrame - merge: with different column names", () => {
+    const df1 = BoxFrame.DataFrame({
+        id: [1, 2, 3],
+        name: ["Alice", "Bob", "Charlie"],
+    });
+
+    const df2 = BoxFrame.DataFrame({
+        user_id: [2, 3, 4],
+        age: [25, 30, 35],
+    });
+
+    const result = BoxFrame.merge(df1, df2, {
+        leftOn: "id",
+        rightOn: "user_id",
+        how: "inner",
+    });
+
+    assertEquals(result.shape, [2, 3]);
+    assertEquals(result.columns, ["id", "name", "age"]);
+    assertEquals(result.get("id").values, [2, 3]);
+});
+
+Deno.test("BoxFrame - merge: with column name conflicts", () => {
+    const df1 = BoxFrame.DataFrame({
+        id: [1, 2],
+        value: [10, 20],
+    });
+
+    const df2 = BoxFrame.DataFrame({
+        id: [1, 2],
+        value: [100, 200],
+    });
+
+    const result = BoxFrame.merge(df1, df2, { on: "id", how: "inner" });
+
+    assertEquals(result.shape, [2, 3]);
+    assertEquals(result.columns, ["id", "value", "value_y"]);
+    assertEquals(result.get("value").values, [10, 20]);
+    assertEquals(result.get("value_y").values, [100, 200]);
+});
+
+Deno.test("BoxFrame - merge: with custom suffixes", () => {
+    const df1 = BoxFrame.DataFrame({
+        id: [1, 2],
+        value: [10, 20],
+    });
+
+    const df2 = BoxFrame.DataFrame({
+        id: [1, 2],
+        value: [100, 200],
+    });
+
+    const result = BoxFrame.merge(df1, df2, {
+        on: "id",
+        how: "inner",
+        suffixes: ["_left", "_right"],
+    });
+
+    assertEquals(result.columns, ["id", "value", "value_right"]);
+});
+
+Deno.test("BoxFrame - merge: with multiple keys", () => {
+    const df1 = BoxFrame.DataFrame({
+        key1: [1, 1, 2],
+        key2: ["a", "b", "a"],
+        value1: [10, 20, 30],
+    });
+
+    const df2 = BoxFrame.DataFrame({
+        key1: [1, 1, 2],
+        key2: ["a", "b", "b"],
+        value2: [100, 200, 300],
+    });
+
+    const result = BoxFrame.merge(df1, df2, {
+        on: ["key1", "key2"],
+        how: "inner",
+    });
+
+    assertEquals(result.shape, [2, 4]);
+    assertEquals(result.get("key1").values, [1, 1]);
+    assertEquals(result.get("key2").values, ["a", "b"]);
+});
+
+Deno.test("BoxFrame - merge: error handling - missing column", () => {
+    const df1 = BoxFrame.DataFrame({ id: [1, 2], name: ["Alice", "Bob"] });
+    const df2 = BoxFrame.DataFrame({ age: [25, 30] });
+
+    assertThrows(
+        () => BoxFrame.merge(df1, df2, { on: "id" }),
+        Error,
+        "Column 'id' not found in right DataFrame",
+    );
+});
+
+Deno.test("BoxFrame - merge: error handling - missing keys", () => {
+    const df1 = BoxFrame.DataFrame({ id: [1, 2], name: ["Alice", "Bob"] });
+    const df2 = BoxFrame.DataFrame({ id: [1, 2], age: [25, 30] });
+
+    assertThrows(
+        () => BoxFrame.merge(df1, df2, {}),
+        Error,
+        "Either 'on' or both 'leftOn' and 'rightOn' must be specified",
+    );
+});
+
+Deno.test("BoxFrame - merge: error handling - mismatched key lengths", () => {
+    const df1 = BoxFrame.DataFrame({ id: [1, 2], name: ["Alice", "Bob"] });
+    const df2 = BoxFrame.DataFrame({ user_id: [1, 2], age: [25, 30] });
+
+    assertThrows(
+        () => BoxFrame.merge(df1, df2, { leftOn: ["id", "name"], rightOn: ["user_id"] }),
+        Error,
+        "leftOn and rightOn must have the same number of keys",
+    );
+});
+
+Deno.test("BoxFrame - merge: with duplicate keys (cartesian product)", () => {
+    const df1 = BoxFrame.DataFrame({
+        id: [1, 1, 2],
+        name: ["Alice", "Alice", "Bob"],
+    });
+
+    const df2 = BoxFrame.DataFrame({
+        id: [1, 1, 3],
+        age: [25, 30, 35],
+    });
+
+    const result = BoxFrame.merge(df1, df2, { on: "id", how: "inner" });
+
+    assertEquals(result.shape, [4, 3]);
+    assertEquals(result.get("id").values, [1, 1, 1, 1]);
 });
 
 Deno.test("BoxFrame - Performance: cut with large dataset", () => {
