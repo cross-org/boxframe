@@ -6,6 +6,7 @@ import { assert, assertEquals, assertThrows } from "@std/assert";
 import { BoxFrame } from "./boxframe.ts";
 
 // Test data generators
+// deno-lint-ignore no-explicit-any
 function generateTestData(size: number): Record<string, any[]> {
     return {
         id: Array.from({ length: size }, (_, i) => i),

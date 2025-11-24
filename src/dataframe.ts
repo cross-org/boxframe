@@ -3,6 +3,7 @@ import { isWasmEngineEnabled } from "./types.ts";
 import { Series } from "./series.ts";
 import { WasmEngine } from "./wasm_engine.ts";
 import { createDataFrameGroups, DataFrameGroupBy } from "./dataframe_groupby.ts";
+import { toCsv } from "./csv_exporter.ts";
 
 /**
  * DataFrame - A 2D labeled data structure (table of data)
@@ -941,6 +942,13 @@ export class DataFrame {
         }
 
         return String(value);
+    }
+
+    /**
+     * Convert to CSV string
+     */
+    toCsv(options: { delimiter?: string; includeIndex?: boolean } = {}): string {
+        return toCsv(this, options);
     }
 
     /**

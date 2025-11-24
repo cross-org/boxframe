@@ -399,6 +399,54 @@ Deno.test("DataFrame - toString method", () => {
     assertEquals(str.includes("col2"), true);
 });
 
+Deno.test("DataFrame - toCsv method", () => {
+    const df = new DataFrame({
+        id: [1, 2, 3],
+        name: ["Alice", "Bob", "Charlie"],
+        age: [25, 30, 35],
+    });
+
+    const csv = df.toCsv();
+    const lines = csv.split("\n");
+    assertEquals(lines[0], "id,name,age");
+    assertEquals(lines[1], "1,Alice,25");
+    assertEquals(lines[2], "2,Bob,30");
+    assertEquals(lines[3], "3,Charlie,35");
+});
+
+Deno.test("DataFrame - toCsv with custom delimiter", () => {
+    const df = new DataFrame({
+        id: [1, 2],
+        name: ["Alice", "Bob"],
+    });
+
+    const csv = df.toCsv({ delimiter: "\t" });
+    assertEquals(csv.includes("\t"), true);
+    assertEquals(csv.includes(","), false);
+});
+
+Deno.test("DataFrame - toCsv with index", () => {
+    const df = new DataFrame({
+        id: [1, 2],
+        name: ["Alice", "Bob"],
+    });
+
+    const csv = df.toCsv({ includeIndex: true });
+    const lines = csv.split("\n");
+    assertEquals(lines[0], "index,id,name");
+    assertEquals(lines[1].startsWith("0,"), true);
+});
+
+Deno.test("DataFrame - toCsv with special characters", () => {
+    const df = new DataFrame({
+        text: ['Hello, "world"', "Line 1\nLine 2"],
+    });
+
+    const csv = df.toCsv();
+    assertEquals(csv.includes('"Hello, ""world"""'), true);
+    assertEquals(csv.includes('"Line 1\nLine 2"'), true);
+});
+
 Deno.test("DataFrame - toJSON method", () => {
     const data = {
         col1: [1, 2, 3],
