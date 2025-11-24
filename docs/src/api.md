@@ -19,6 +19,9 @@ One-dimensional labeled arrays. Provides methods for data access, statistical op
 ### [GroupBy API](groupby)
 Grouping and aggregation operations for both Series and DataFrame.
 
+### [Merging & Joins](merging)
+Combine DataFrames using concatenation and SQL-style joins (merge operations).
+
 ### [WasmEngine API](wasm-engine)
 High-performance WASM engine for memory management and accelerated operations.
 

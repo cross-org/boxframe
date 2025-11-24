@@ -1,6 +1,6 @@
 ---
 title: "Static Methods"
-nav_order: 4
+nav_order: 5
 parent: "API Reference"
 description: "BoxFrame static factory methods and utilities"
 ---
@@ -31,7 +31,10 @@ description: "BoxFrame static factory methods and utilities"
 ## Data Manipulation
 
 - `BoxFrame.concat(dataFrames: DataFrame[], axis?, options?)` - Concatenate DataFrames
+- `BoxFrame.merge(left: DataFrame, right: DataFrame, options?)` - SQL-style joins
 - `BoxFrame.toNumeric(data: Series | DataValue[])` - Convert to numeric
 - `BoxFrame.toDatetime(data: Series | DataValue[])` - Convert to datetime
 - `BoxFrame.cut(data: Series, bins: number | number[], labels?)` - Cut into bins
 - `BoxFrame.dateRange(options?)` - Generate date range
+
+**See [Merging & Joins](merging) for detailed documentation on `concat()` and `merge()` operations.**

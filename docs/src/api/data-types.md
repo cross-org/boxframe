@@ -1,6 +1,6 @@
 ---
 title: "Data Types"
-nav_order: 5
+nav_order: 7
 parent: "API Reference"
 description: "Type definitions and interfaces"
 ---

@@ -1,6 +1,6 @@
 ---
 title: "Error Handling"
-nav_order: 6
+nav_order: 9
 parent: "API Reference"
 description: "Error classes and exception handling"
 ---

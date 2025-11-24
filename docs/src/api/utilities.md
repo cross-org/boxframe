@@ -1,6 +1,6 @@
 ---
 title: "Utility Functions"
-nav_order: 7
+nav_order: 10
 parent: "API Reference"
 description: "Utility functions for data type handling and conversions"
 ---
