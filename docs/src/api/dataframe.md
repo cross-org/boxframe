@@ -71,5 +71,65 @@ new DataFrame(data: Record<string, any[]> | any[][], options?: DataFrameOptions)
 
 ## Export
 
-- `toJSON()` - Convert to JSON
+- `toCsv(options?)` - Convert to CSV string
+- `toJSON()` - Convert to JSON object
 - `toString()` - Convert to string representation
+
+### CSV Export
+
+```typescript
+const df = new DataFrame({
+    name: ["Alice", "Bob", "Charlie"],
+    age: [25, 30, 35]
+});
+
+// Basic CSV export
+const csv = df.toCsv();
+// "name,age\nAlice,25\nBob,30\nCharlie,35"
+
+// With custom delimiter
+const tsv = df.toCsv({ delimiter: "\t" });
+
+// Include index column
+const csvWithIndex = df.toCsv({ includeIndex: true });
+```
+
+**Options:**
+- `delimiter?: string` - Custom delimiter (default: `","`)
+- `includeIndex?: boolean` - Include index column (default: `false`)
+
+### JSON Export
+
+```typescript
+const df = new DataFrame({
+    name: ["Alice", "Bob"],
+    age: [25, 30]
+});
+
+const json = df.toJSON();
+// {
+//   columns: ["name", "age"],
+//   index: [0, 1],
+//   data: {
+//     name: ["Alice", "Bob"],
+//     age: [25, 30]
+//   }
+// }
+```
+
+**Note:** Boxframe functions for writing files is under consideration for future releases, use standard file I/O with the exported strings/objects for now:
+```typescript
+// Using Deno
+const csv = df.toCsv();
+await Deno.writeTextFile("output.csv", csv);
+
+const json = df.toJSON();
+await Deno.writeTextFile("output.json", JSON.stringify(json, null, 2));
+
+// Or using @cross/fs for cross-runtime compatibility
+import { writeFile } from "jsr:@cross/fs/io";
+
+const encoder = new TextEncoder();
+await writeFile("output.csv", encoder.encode(csv));
+await writeFile("output.json", encoder.encode(JSON.stringify(json, null, 2)));
+```
